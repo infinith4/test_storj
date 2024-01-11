@@ -2,6 +2,8 @@ const { exec } = require('child_process')
 const fs = require('fs');
 var readline = require("readline");
 
+var storj_ls_json = {'file_list' : []};
+
 cmd  = 'rclone ls storj:test-bucket'
 exec(cmd, (err, stdout, stderr) => {
   //exec('ls -l sample.txt', (err, stdout, stderr) => {
@@ -12,9 +14,14 @@ exec(cmd, (err, stdout, stderr) => {
   console.log(`${cmd}; stdout: ${stdout}`)
   const ls_stdout = stdout.split(/\n/);
   console.log(ls_stdout);
-  for (const line of ls_stdout){
-    console.log(line.split(/\s/));
+  for (const line of ls_stdout) {
+    if(line !== '') {
+      storj_ls_json.file_list.push({ 'file_size': Number(line.trim().split(/\s/)[0]), 'file_name': line.replace(/\s*\d+/, '').trim()});
+      console.log(Number(line.trim().split(/\s/)[0]));
+      console.log(line.replace(/\s*\d+/, '').trim());
+    }
   }
+  console.log(storj_ls_json);
 });
 
 const local_files = fs.readdirSync('upload_files');

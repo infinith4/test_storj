@@ -1,5 +1,16 @@
 # test_storj
 
+node --env-file=../.env src/exec_cmd.js
+
+
+
+
+
+
+-----------
+
+# test_storj
+
 https://docs.storj.io/dcs/getting-started
 
 sudo -v ; curl https://rclone.org/install.sh | sudo bash

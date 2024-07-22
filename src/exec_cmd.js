@@ -30,8 +30,8 @@ for(const upload_bucket_name of upload_bucket_name_list){
     }
     
     //Bucket 内のファイル一覧
-    //console.log(`--------storj_ls_json-------: `);
-    //console.log(JSON.stringify(storj_ls_json, null, 2));
+    console.log(`--------storj_ls_json-------: `);
+    console.log(JSON.stringify(storj_ls_json, null, 2));
     //console.log(`storj_ls_json.file_list.length: ${storj_ls_json.file_list.length}`)
     //ローカルのファイル一覧を取得
     //const local_files = fs.readdirSync(source_upload_dir);
@@ -60,6 +60,7 @@ for(const upload_bucket_name of upload_bucket_name_list){
 
         const root_dir_name = local_file_path.split("/")[0];
         const local_file_path_remove_source_dir = local_file_path.replace(`${root_dir_name}/`, "");
+        //file size
         //console.log(`storj_file.file_name: ${storj_file.file_name},local_file_path: ${local_file_path},storj_file.file_size: ${storj_file.file_size},stat.size: ${stat.size},Is file_name and file size match: ${storj_file.file_name == local_file_path_remove_source_dir && storj_file.file_size == stat.size}`)
         if(storj_file.file_name == local_file_path_remove_source_dir && storj_file.file_size == stat.size ) {
           //console.log("uploaded");

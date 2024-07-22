@@ -72,14 +72,17 @@ async function main(upload_bucket_name){
           local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': storj_file.file_size == stat.size});
           break;
         }else{
+          //storj files
           console.log(`storj_file.file_name: ${storj_file.file_name}`);
-          for(const storj_regex_file_path of filterArray(storj_ls_json.file_list.map(c => c.file_name), `*${local_file_path_remove_source_dir}*`)){
-            console.log(storj_file.file_size == fs.statSync(`${local_file_path}`).size)
+          for(const storj_regex_file_path of filterArray(storj_ls_json.file_list.map(c => c.file_name), `*${local_file_path_remove_source_dir}_*`)){
+            const storj_regex_file_list = storj_ls_json.file_list.find(({file_name}) => file_name === storj_regex_file_path);
+            console.log(`storj_regex_file_path: ${storj_regex_file_path}, storj_regex_file_path.file_size: ${storj_regex_file_list.file_size}, ${fs.statSync(`${local_file_path}`).size}`)
+            const is_same_exist_file_size = storj_regex_file_list.file_size === fs.statSync(`${local_file_path}`).size;
+            if(is_same_exist_file_size){
+              local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': is_same_exist_file_size});
+              break;
+            }
           }
-          // const upload_file_json = local_files_json.file_list.filter((val) => 
-          //   {
-          //     storj_file.file_size === fs.statSync(`${val}`).size && 
-          //   }))
           break;
         }
       }
@@ -125,8 +128,9 @@ async function main(upload_bucket_name){
     if(!upload_file_val.is_same_size){
       copy_dir = `/${remote_file_name}_${new Date().toISOString()}`;
     }
-    // const res_rclonecopycmd = await exec(`rclone copy --progress '${upload_file_val.file_path}' storj:'${upload_bucket_name}/${remote_dir_path}${copy_dir}'`);
-    // console.log(res_rclonecopycmd.stdout);
+    //file upload
+    const res_rclonecopycmd = await exec(`rclone copy --progress '${upload_file_val.file_path}' storj:'${upload_bucket_name}/${remote_dir_path}${copy_dir}'`);
+    console.log(res_rclonecopycmd.stdout);
   }
 
   // console.log("------------------")

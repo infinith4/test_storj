@@ -39,13 +39,6 @@ async function main(upload_bucket_name){
       dirent.isFile() ? [`${dir}/${dirent.name}`] : listFiles(`${dir}/${dirent.name}`)
     )
   const local_files = listFiles(source_upload_dir);
-  //console.log(`local_files----: ${local_files}`);
-
-  const aaa = storj_ls_json.file_list.find(({file_name}) => file_name == "iCloud写真/IMG_8869.PNG");
-  console.log(`aaa: ${JSON.stringify(aaa, null, 2)}`);
-  const bbb = storj_ls_json.file_list.find(({file_name}) => file_name == "iCloud写真/IMG_9195.PNG");
-  console.log(`bbb: ${JSON.stringify(bbb, null, 2)}`);
-
   let local_file_count = 0;
   
   for (const local_file_path of local_files) {
@@ -132,36 +125,6 @@ async function main(upload_bucket_name){
     const res_rclonecopycmd = await exec(`rclone copy --progress '${upload_file_val.file_path}' storj:'${upload_bucket_name}/${remote_dir_path}${copy_dir}'`);
     console.log(res_rclonecopycmd.stdout);
   }
-
-  // console.log("------------------")
-  // cmd  = `rclone ls storj:${upload_bucket_name}`
-  // exec(cmd, (err, stdout, stderr) => {
-  //   //exec('ls -l sample.txt', (err, stdout, stderr) => {
-  //   if (err) {
-  //     console.log(`${cmd}; stderr: ${stderr}`)
-  //     return
-  //   }
-  //   console.log(`${cmd}; stdout: ${stdout}`)
-  // });
-
-  // // exec(`rclone mkdir storj:backup-bucket/GoogleDrive`, (err, stdout, stderr) => {
-  // //   if (err) {
-  // //     console.log(`rclone mkdir stderr: ${stderr}`)
-  // //     return
-  // //   }
-  // //   console.log(`rclone mkdir stdout: ${stdout}`);
-
-  // // });
-
-  //     // //ファイルをコピーする
-        // upload_files/GoogleDrive/.DS_Store ファイルを storj:backup-bucket/GoogleDrive/.DS_Store ディレクトリにコピーする
-  //     exec(`rclone copy --progress 'upload_files/GoogleDrive/.DS_Store' storj:backup-bucket/GoogleDrive/.DS_Store`, (err, stdout, stderr) => {
-  //       if (err) {
-  //         console.log(`rclone copy stderr: ${stderr}`)
-  //         return 
-  //       }
-  //       console.log(`rclone copy stdout: ${stdout}`)
-  //     });
 }
 
 function escapeRegExp(str) {

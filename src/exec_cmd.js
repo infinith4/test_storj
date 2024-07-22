@@ -68,9 +68,20 @@ async function main(upload_bucket_name){
       //file size
       //console.log(`storj_file.file_name: ${storj_file.file_name},local_file_path: ${local_file_path},storj_file.file_size: ${storj_file.file_size},stat.size: ${stat.size},Is file_name and file size match: ${storj_file.file_name == local_file_path_remove_source_dir && storj_file.file_size == stat.size}`)
       if(storj_file.file_name == local_file_path_remove_source_dir) {
-        //console.log("uploaded");
-        local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': storj_file.file_size == stat.size});
-        break;
+        if(storj_file.file_size == stat.size){
+          local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': storj_file.file_size == stat.size});
+          break;
+        }else{
+          console.log(`storj_file.file_name: ${storj_file.file_name}`);
+          for(const storj_regex_file_path of filterArray(storj_ls_json.file_list.map(c => c.file_name), `*${local_file_path_remove_source_dir}*`)){
+            console.log(storj_file.file_size == fs.statSync(`${local_file_path}`).size)
+          }
+          // const upload_file_json = local_files_json.file_list.filter((val) => 
+          //   {
+          //     storj_file.file_size === fs.statSync(`${val}`).size && 
+          //   }))
+          break;
+        }
       }
     }
   }
@@ -109,12 +120,13 @@ async function main(upload_bucket_name){
     //ファイルをコピーする
     const copy_file_log = `copy '${upload_file_val.file_path}' to storj:'${upload_bucket_name}/${remote_dir_path}':`;  
     console.log(copy_file_log);
+    //同一のファイル名があり、アップロードできないときにコピーフォルダを作成している。
     let copy_dir = ""
     if(!upload_file_val.is_same_size){
       copy_dir = `/${remote_file_name}_${new Date().toISOString()}`;
     }
-    const res_rclonecopycmd = await exec(`rclone copy --progress '${upload_file_val.file_path}' storj:'${upload_bucket_name}/${remote_dir_path}${copy_dir}'`);
-    console.log(res_rclonecopycmd.stdout);
+    // const res_rclonecopycmd = await exec(`rclone copy --progress '${upload_file_val.file_path}' storj:'${upload_bucket_name}/${remote_dir_path}${copy_dir}'`);
+    // console.log(res_rclonecopycmd.stdout);
   }
 
   // console.log("------------------")
@@ -146,6 +158,44 @@ async function main(upload_bucket_name){
   //       }
   //       console.log(`rclone copy stdout: ${stdout}`)
   //     });
+}
+
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function convertWildcardStringToRegExp(expression) {
+  var terms = expression.split('*');
+
+  var trailingWildcard = false;
+
+  var expr = '';
+  for (var i = 0; i < terms.length; i++) {
+      if (terms[i]) {
+          if (i > 0 && terms[i - 1]) {
+              expr += '.*';
+          }
+          trailingWildcard = false;
+          expr += escapeRegExp(terms[i]);
+      } else {
+          trailingWildcard = true;
+          expr += '.*';
+      }
+  }
+
+  if (!trailingWildcard) {
+      expr += '.*';
+  }
+
+  return new RegExp('^' + expr + '$', 'i');
+}
+
+function filterArray(array, expression) {
+	var regex = convertWildcardStringToRegExp(expression);
+	//console.log('RegExp: ' + regex);
+	return array.filter(function(item) {
+		return regex.test(item);
+	});
 }
 
 for(upload_bucket_name of upload_bucket_name_list){

@@ -61,14 +61,14 @@ async function main(upload_bucket_name){
     // const regex_str = `/^${local_file_path_remove_source_dir_path}/`;
     // console.log(`${local_file_path}; regex_str: ${regex_str}; storj_ls_json.file_list: ${JSON.stringify(storj_ls_json.file_list[0], null, 2)}`)
     // console.log(storj_ls_json.file_list.filter(c => c.file_name.match(regex_str)));
-    
-    local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': false});
+
     for (const storj_file of storj_ls_json.file_list) {
       //file size
       //console.log(`storj_file.file_name: ${storj_file.file_name},local_file_path: ${local_file_path},storj_file.file_size: ${storj_file.file_size},stat.size: ${stat.size},Is file_name and file size match: ${storj_file.file_name == local_file_path_remove_source_dir && storj_file.file_size == stat.size}`)
       if(storj_file.file_name == local_file_path_remove_source_dir) {
         console.log(`storj_file.file_name: ${storj_file.file_name},local_file_path: ${local_file_path}`)
         if(storj_file.file_size == stat.size){
+          //LocalのファイルがUploadされているかチェックするためのリスト
           local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': storj_file.file_size == stat.size});
           break;
         }else{
@@ -76,20 +76,20 @@ async function main(upload_bucket_name){
           //storj files
           console.log(`storj_file.file_name: ${storj_file.file_name}`);
           const storj_exist_regex_file_list = filterArray(storj_ls_json.file_list.map(c => c.file_name), `*${local_file_path_remove_source_dir}_*`)
-          
-          console.log(`storj_file.file_name: ${storj_file.file_name}`);
+          //同名のファイルのフォルダがない場合、アップロードする
           if(storj_exist_regex_file_list.length === 0){
+            //LocalのファイルがUploadされているかチェックするためのリスト
             local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': false});
             break;
           }
-          for(const storj_regex_file_path of storj_regex_file_list){
+          for(const storj_regex_file_path of storj_exist_regex_file_list){
             const storj_regex_file_list = storj_ls_json.file_list.find(({file_name}) => file_name === storj_regex_file_path);
             console.log(`storj_regex_file_path: ${storj_regex_file_path}, storj_regex_file_path.file_size: ${storj_regex_file_list.file_size}, ${fs.statSync(`${local_file_path}`).size}`)
             const is_same_exist_file_size = storj_regex_file_list.file_size === fs.statSync(`${local_file_path}`).size;
-            if(is_same_exist_file_size){
-              local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': is_same_exist_file_size});
-              break;
-            }
+            //TODO: COPYフォルダがあるときに２回目実行がおかしい
+            //LocalのファイルがUploadされているかチェックするためのリスト
+            local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': is_same_exist_file_size});
+            break;
           }
         }
       }
@@ -102,9 +102,11 @@ async function main(upload_bucket_name){
   console.log(`Is local_file_count equales storj_ls_json.file_list.length: ${storj_ls_json.file_list.length == local_file_count}`);
 
   //console.log(`local_files_upload_check_json.file_list: ${JSON.stringify(local_files_upload_check_json.file_list, null, 2)}`);
-  const aaa = local_files_upload_check_json.file_list.filter(c => (c.file_path === val && c.is_same_size))
-  console.log(aaa)
-  const upload_file_json = local_files_json.file_list.filter((val) => !(local_files_upload_check_json.file_list.filter(c => (c.file_path === val && c.is_same_size))))
+  // const aaa = local_files_upload_check_json.file_list.filter(c => (c.file_path === val && c.is_same_size))
+  // console.log(aaa)
+  //LocalのファイルがUploadされているかチェックするためのリストでfile_pathが一致して is_same_size: trueならアップロードしない
+  console.log(local_files_upload_check_json.file_list.filter(c => !c.is_same_size));
+  const upload_file_json = local_files_upload_check_json.file_list.length === 0 ? local_files_json.file_list : local_files_json.file_list.filter((val) => local_files_upload_check_json.file_list.filter(c => (c.file_path === val && c.is_same_size)).map(c => c.file_path))
   if(upload_file_json.length > 0){
     console.log(`upload_file_json: ${JSON.stringify(upload_file_json, null, 2)}`);
   }else{
@@ -112,8 +114,8 @@ async function main(upload_bucket_name){
   }
 
   for (const upload_file_val of upload_file_json) {
-    const root_dir_name = upload_file_val.file_path.split("/")[0];
-    const remote_file_path = upload_file_val.file_path.replace(`${root_dir_name}/`, "");
+    const root_dir_name = upload_file_val.split("/")[0];
+    const remote_file_path = upload_file_val.replace(`${root_dir_name}/`, "");
     //console.log(`remote_file_path: ${remote_file_path}`);
     let remote_dir_path = path.dirname(remote_file_path);
     let remote_file_name = path.basename(remote_file_path);
@@ -131,15 +133,17 @@ async function main(upload_bucket_name){
     console.log(`remote_dir_path: ${remote_dir_path}`);
     
     //ファイルをコピーする
-    const copy_file_log = `copy '${upload_file_val.file_path}' to storj:'${upload_bucket_name}/${remote_dir_path}':`;  
+    const copy_file_log = `copy '${upload_file_val}' to storj:'${upload_bucket_name}/${remote_dir_path}':`;  
     console.log(copy_file_log);
     //同一のファイル名があり、アップロードできないときにコピーフォルダを作成している。
     let copy_dir = ""
-    if(!upload_file_val.is_same_size){
+    const upload_file = local_files_upload_check_json.file_list.find(c => c.file_path === upload_file_val);
+    console.log(`upload_file: ${JSON.stringify(upload_file, null, 2)}`)
+    if(upload_file != undefined && !upload_file.is_same_size){
       copy_dir = `/${remote_file_name}_${new Date().toISOString()}`;
     }
     //file upload
-    const res_rclonecopycmd = await exec(`rclone copy --progress '${upload_file_val.file_path}' storj:'${upload_bucket_name}/${remote_dir_path}${copy_dir}'`);
+    const res_rclonecopycmd = await exec(`rclone copy --progress '${upload_file_val}' storj:'${upload_bucket_name}/${remote_dir_path}${copy_dir}'`);
     console.log(res_rclonecopycmd.stdout);
   }
 }

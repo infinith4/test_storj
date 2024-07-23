@@ -2,4 +2,9 @@ upload_files
 0*_*/
 *.zip
 videos
-iCloud*
+*.jpg
+*.jpeg
+*.heic
+*.mp4
+*.png
+*.mov

@@ -54,20 +54,35 @@ async function main(upload_bucket_name){
     //console.log(`local_file_path: ${local_file_path}; size: ${stat.size}`);
     local_files_json.file_list.push(local_file_path);
 
-    for (const storj_file of storj_ls_json.file_list) {
+    const root_dir_name = local_file_path.split("/")[0];
+    const local_file_path_remove_source_dir = local_file_path.replace(`${root_dir_name}/`, "");
 
-      const root_dir_name = local_file_path.split("/")[0];
-      const local_file_path_remove_source_dir = local_file_path.replace(`${root_dir_name}/`, "");
+    // let local_file_path_remove_source_dir_path = path.dirname(local_file_path_remove_source_dir);
+    // const regex_str = `/^${local_file_path_remove_source_dir_path}/`;
+    // console.log(`${local_file_path}; regex_str: ${regex_str}; storj_ls_json.file_list: ${JSON.stringify(storj_ls_json.file_list[0], null, 2)}`)
+    // console.log(storj_ls_json.file_list.filter(c => c.file_name.match(regex_str)));
+    
+    local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': false});
+    for (const storj_file of storj_ls_json.file_list) {
       //file size
       //console.log(`storj_file.file_name: ${storj_file.file_name},local_file_path: ${local_file_path},storj_file.file_size: ${storj_file.file_size},stat.size: ${stat.size},Is file_name and file size match: ${storj_file.file_name == local_file_path_remove_source_dir && storj_file.file_size == stat.size}`)
       if(storj_file.file_name == local_file_path_remove_source_dir) {
+        console.log(`storj_file.file_name: ${storj_file.file_name},local_file_path: ${local_file_path}`)
         if(storj_file.file_size == stat.size){
           local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': storj_file.file_size == stat.size});
           break;
         }else{
+          
           //storj files
           console.log(`storj_file.file_name: ${storj_file.file_name}`);
-          for(const storj_regex_file_path of filterArray(storj_ls_json.file_list.map(c => c.file_name), `*${local_file_path_remove_source_dir}_*`)){
+          const storj_exist_regex_file_list = filterArray(storj_ls_json.file_list.map(c => c.file_name), `*${local_file_path_remove_source_dir}_*`)
+          
+          console.log(`storj_file.file_name: ${storj_file.file_name}`);
+          if(storj_exist_regex_file_list.length === 0){
+            local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': false});
+            break;
+          }
+          for(const storj_regex_file_path of storj_regex_file_list){
             const storj_regex_file_list = storj_ls_json.file_list.find(({file_name}) => file_name === storj_regex_file_path);
             console.log(`storj_regex_file_path: ${storj_regex_file_path}, storj_regex_file_path.file_size: ${storj_regex_file_list.file_size}, ${fs.statSync(`${local_file_path}`).size}`)
             const is_same_exist_file_size = storj_regex_file_list.file_size === fs.statSync(`${local_file_path}`).size;
@@ -76,18 +91,20 @@ async function main(upload_bucket_name){
               break;
             }
           }
-          break;
         }
       }
+
+
     }
   }
 
-  console.log(`local_file_count: ${local_file_count}`);
+  console.log(`local_file_count: ${local_file_count}; local_files_upload_check_json: ${local_files_upload_check_json.file_list.length}`);
   console.log(`Is local_file_count equales storj_ls_json.file_list.length: ${storj_ls_json.file_list.length == local_file_count}`);
 
   //console.log(`local_files_upload_check_json.file_list: ${JSON.stringify(local_files_upload_check_json.file_list, null, 2)}`);
-
-  const upload_file_json = local_files_upload_check_json.file_list.filter((val) => !(local_files_json.file_list.includes(val.file_path) && val.is_same_size))
+  const aaa = local_files_upload_check_json.file_list.filter(c => (c.file_path === val && c.is_same_size))
+  console.log(aaa)
+  const upload_file_json = local_files_json.file_list.filter((val) => !(local_files_upload_check_json.file_list.filter(c => (c.file_path === val && c.is_same_size))))
   if(upload_file_json.length > 0){
     console.log(`upload_file_json: ${JSON.stringify(upload_file_json, null, 2)}`);
   }else{

@@ -10,3 +10,4 @@ videos
 *.png
 *.mov
 iCloud*
+.rcloneconf

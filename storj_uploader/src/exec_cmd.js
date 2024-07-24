@@ -82,14 +82,18 @@ async function main(upload_bucket_name){
             local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': false});
             break;
           }
+
+          console.log(`storj_exist_regex_file_list: ${storj_exist_regex_file_list}`)
           for(const storj_regex_file_path of storj_exist_regex_file_list){
             const storj_regex_file_list = storj_ls_json.file_list.find(({file_name}) => file_name === storj_regex_file_path);
             console.log(`storj_regex_file_path: ${storj_regex_file_path}, storj_regex_file_path.file_size: ${storj_regex_file_list.file_size}, ${fs.statSync(`${local_file_path}`).size}`)
             const is_same_exist_file_size = storj_regex_file_list.file_size === fs.statSync(`${local_file_path}`).size;
             //TODO: COPYフォルダがあるときに２回目実行がおかしい
             //LocalのファイルがUploadされているかチェックするためのリスト
-            local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': is_same_exist_file_size});
-            break;
+            if(is_same_exist_file_size){
+              local_files_upload_check_json.file_list.push({'file_path': local_file_path, 'is_same_size': is_same_exist_file_size});
+              break;
+            }
           }
         }
       }
@@ -105,7 +109,7 @@ async function main(upload_bucket_name){
   // const aaa = local_files_upload_check_json.file_list.filter(c => (c.file_path === val && c.is_same_size))
   // console.log(aaa)
   //LocalのファイルがUploadされているかチェックするためのリストでfile_pathが一致して is_same_size: trueならアップロードしない
-  console.log(local_files_upload_check_json.file_list.filter(c => !c.is_same_size));
+  console.log(`local_files_json filter: ${!local_files_json.file_list.includes(val => local_files_upload_check_json.file_list.filter(c => (c.file_path === val && c.is_same_size).map(c => c.file_path)))}`);
   const upload_file_json = local_files_upload_check_json.file_list.length === 0 ? local_files_json.file_list : local_files_json.file_list.filter((val) => local_files_upload_check_json.file_list.filter(c => (c.file_path === val && c.is_same_size)).map(c => c.file_path))
   if(upload_file_json.length > 0){
     console.log(`upload_file_json: ${JSON.stringify(upload_file_json, null, 2)}`);

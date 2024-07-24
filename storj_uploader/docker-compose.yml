@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  apps:
+    container_name: test_solana_getting-started01
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    # ports:
+    #   - 3200:4200
+    tty: true
+    volumes:
+      - type: bind
+        source: ./src
+        target: /src
+    # environment:
+    #   - WATCHPACK_POLLING=true
+
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+    #network_mode: 'host'
+    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
+    network_mode: 'host' #service:db

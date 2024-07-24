@@ -2,7 +2,7 @@ version: '3'
 
 services:
   apps:
-    container_name: test_solana_getting-started01
+    container_name: test_storj_storj-uploader01
     build: 
       context: .
       dockerfile: Dockerfile
@@ -11,8 +11,8 @@ services:
     tty: true
     volumes:
       - type: bind
-        source: ./src
-        target: /src
+        source: ./app
+        target: /app
     # environment:
     #   - WATCHPACK_POLLING=true
 

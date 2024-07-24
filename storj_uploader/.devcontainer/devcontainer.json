@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/rust
 {
-	"name": "test_storj_uploader01",
+	"name": "test_storj_storj-uploader01",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"dockerComposeFile": "../docker-compose.yml",
 	"service": "apps",
@@ -26,7 +26,7 @@
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	//"postCreateCommand": "rustc --version",
-	"workspaceFolder": "/src",
+	"workspaceFolder": "/app",
 	// Configure tool-specific properties.
 	// "customizations": {},
 

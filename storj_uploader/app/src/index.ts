@@ -99,16 +99,16 @@ async function main(uploadBucketName: string) {
   console.log(`local_file_count: ${localFileCount}; local_files_upload_check_json: ${localFilesUploadCheckJson.file_list.length}`);
   console.log(`Is local_file_count equals storj_ls_json.file_list.length: ${storjLsJson.file_list.length === localFileCount}`);
 
-  const uploadFileJson = localFilesUploadCheckJson.file_list.length === 0
-    ? localFilesJson.file_list
-    : localFilesJson.file_list.filter(val =>
-        localFilesUploadCheckJson.file_list.some(c => c.file_path === val.file_path && c.is_same_size)
-      );
+  // Filter out the local files whose file_path matches and is_same_size is false in localFilesUploadCheckJson
+  const uploadFileJson = localFilesJson.file_list.filter(localFile => {
+    const uploadCheckFile = localFilesUploadCheckJson.file_list.find(uploadCheck => uploadCheck.file_path === localFile.file_path);
+    return !(uploadCheckFile && uploadCheckFile.is_same_size === false);
+  });
 
   if (uploadFileJson.length > 0) {
-    console.log(`upload_file_json: ${JSON.stringify(uploadFileJson, null, 2)}`);
+    console.log(`Filtered local_files_json: ${JSON.stringify(uploadFileJson, null, 2)}`);
   } else {
-    console.log(`upload_file_json count is 0`);
+    console.log(`No files to upload after filtering`);
   }
 
   for (const uploadFileVal of uploadFileJson) {
@@ -127,17 +127,17 @@ async function main(uploadBucketName: string) {
 
     console.log(`remote_dir_path: ${remoteDirPath}`);
     
-    const copyFileLog = `copy '${uploadFileVal.file_path}' to storj:'${uploadBucketName}/${remoteDirPath}':`;  
-    console.log(copyFileLog);
 
     let copyDir = "";
     const uploadFile = localFilesUploadCheckJson.file_list.find(c => c.file_path === uploadFileVal.file_path);
 
-    if (uploadFile && !uploadFile.is_same_size) {
+    if (uploadFile && uploadFile.is_same_size) {
       copyDir = `/${remoteFileName}_${new Date().toISOString()}`;
     }
 
-    const resRcloneCopyCmd = await exec(`rclone copy --progress '${uploadFileVal.file_path}' storj:'${uploadBucketName}/${remoteDirPath}${copyDir}'`);
+    const copyFileCmdStr = `rclone copy --progress '${uploadFileVal.file_path}' storj:'${uploadBucketName}/${remoteDirPath}${copyDir}'`;  
+    console.log(copyFileCmdStr);
+    const resRcloneCopyCmd = await exec(copyFileCmdStr);
     console.log(resRcloneCopyCmd.stdout);
   }
 }

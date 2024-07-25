@@ -85,8 +85,9 @@ async function main(uploadBucketName: string) {
           for (const storjRegexFilePath of storjExistRegexFileList) {
             const storjRegexFileList = storjLsJson.file_list.find(({ file_name }) => file_name === storjRegexFilePath);
             const isSameExistFileSize = storjRegexFileList?.file_size === fs.statSync(localFilePath).size;
-
-            if (isSameExistFileSize) {
+            //一つでもisSameExistFileSize: trueがあったらアップロードされているので、アップロード対象としない
+            console.log(`storjRegexFilePath: ${storjRegexFilePath}, isSameExistFileSize: ${isSameExistFileSize}`)
+            if(isSameExistFileSize){
               localFilesUploadCheckJson.file_list.push({ file_path: localFilePath, is_same_size: isSameExistFileSize });
               break;
             }
@@ -102,7 +103,7 @@ async function main(uploadBucketName: string) {
   // Filter out the local files whose file_path matches and is_same_size is false in localFilesUploadCheckJson
   const uploadFileJson = localFilesJson.file_list.filter(localFile => {
     const uploadCheckFile = localFilesUploadCheckJson.file_list.find(uploadCheck => uploadCheck.file_path === localFile.file_path);
-    return !(uploadCheckFile && uploadCheckFile.is_same_size === false);
+    return !(uploadCheckFile && uploadCheckFile.is_same_size);
   });
 
   if (uploadFileJson.length > 0) {

@@ -131,8 +131,8 @@ async function main(uploadBucketName: string) {
 
     let copyDir = "";
     const uploadFile = localFilesUploadCheckJson.file_list.find(c => c.file_path === uploadFileVal.file_path);
-
-    if (uploadFile && uploadFile.is_same_size) {
+    console.log(`uploadFile: ${JSON.stringify(uploadFile, null, 2)}`)
+    if (uploadFile && !uploadFile.is_same_size) {
       copyDir = `/${remoteFileName}_${new Date().toISOString()}`;
     }
 

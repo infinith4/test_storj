@@ -1,0 +1,14 @@
+node_modules
+upload_files
+0*_*/
+*.zip
+videos
+*.jpg
+*.jpeg
+*.heic
+*.mp4
+*.png
+*.mov
+iCloud*
+.rcloneconf
+storj_uploader_*
